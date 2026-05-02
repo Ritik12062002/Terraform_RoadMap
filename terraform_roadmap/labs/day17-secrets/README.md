@@ -1,46 +1,68 @@
-# 🔐 Day 17: Secrets Management
-> **Topic:** Hiding the Most Sensitive Data
+# 🔐 Day 17: AWS Secrets Manager
+> **Topic:** Hiding the Most Critical Information
 
 ---
 
-## 🎯 Today's Mission
-Never, ever, ever commit passwords to Git. Today we learn how to use **AWS Secrets Manager** to store database passwords and API keys securely. We will fetch these secrets dynamically in our Terraform code.
+## 🎯 1. The "Why" - Why are we doing this?
+Code is public (or at least visible to all coworkers). Passwords should be secret. If you hardcode a database password in your `variables.tf`, any developer can see it. **AWS Secrets Manager** is an encrypted vault for passwords.
+
+**Real World Use Case:** Your database password needs to change every 90 days. Instead of you manually updating 100 servers, Secrets Manager can "Rotate" the password automatically and tell the servers the new one.
 
 ---
 
-## 🔍 Line-by-Line Code Breakdown
+## 🛠️ 2. Core Concepts & Definitions
+- **Secret:** The "Box" where you store the name of the credential.
+- **Secret Version:** The actual "Value" inside the box (which can change over time).
+- **JSON Secret:** You can store multiple values (Username, Password, Port) in one secret.
+- **Rotation:** The automated process of changing the password.
 
-### 🗝️ Part 1: Storing the Secret
+---
+
+## 🔍 3. Line-by-Line Code Explanation (`main.tf`)
+
 ```hcl
-resource "aws_secretsmanager_secret" "db_password" {
-  name = "prod/db/secret"
+resource "aws_secretsmanager_secret" "db_pass" {
+  name = "database-passwordv1"
 }
 ```
-- **The Box:** Creates a secure location in AWS to store a value.
+- **Line 6:** `aws_secretsmanager_secret` - Creating the "Box".
 
-### 📥 Part 2: Fetching the Secret
 ```hcl
-data "aws_secretsmanager_secret_version" "pass" {
-  secret_id = aws_secretsmanager_secret.db_password.id
+resource "aws_secretsmanager_secret_version" "example" {
+  secret_id     = aws_secretsmanager_secret.db_pass.id
+  secret_string = "Sup3rS3cretP@ssword"
 }
 ```
-- **The Key:** Terraform goes to AWS, pulls the latest secret, and uses it inside your code without you ever seeing it in plain text.
+- **Line 11:** `secret_string` - This is the actual password. Note: Usually you would set this manually in the AWS UI or via CLI, not in plain text Terraform, but we do it here for the lab.
+
+```hcl
+data "aws_secretsmanager_secret_version" "retrieved" {
+  secret_id = aws_secretsmanager_secret.db_pass.id
+}
+```
+- **Line 16:** `data` - Fetching the secret back. This is how your servers get the password without you hardcoding it.
 
 ---
 
-## 🏗️ Architectural Design
+## 🏗️ 4. Architectural Design
 ```mermaid
 graph LR
     Code[Terraform Code] -- Request --> SM[AWS Secrets Manager]
     SM -- Secure Value --> Code
-    Code -- Inject --> RDS[RDS Database]
+    Code -- Injects Into --> RDS[RDS Database]
 ```
 
 ---
 
-## 🧠 Senior DevOps Insight
-- **Rotation:** Secrets Manager can automatically change (rotate) your passwords every 30 days. This means even if a hacker gets a password, it's useless after a month.
-- **Access Control:** Use **IAM Policies** to ensure only the web server can read the secret, and not just any user in the account.
+## 🧠 5. Senior DevOps Insight
+- **Encryption:** Secrets Manager uses **AWS KMS (Key Management Service)**. This means even AWS employees cannot see your password unless they have the decryption key.
+- **Cross-Service:** You can sharing secrets across different AWS accounts (e.g., sharing a database password from the 'DB Account' to the 'Web Account').
+
+---
+
+### 🛠️ Hands-on Tasks:
+- [ ] Deploy the Secret resources.
+- [ ] **Verification:** Go to the AWS Console -> Secrets Manager. Find your secret and click "Retrieve Secret Value." Do you see your password?
 
 ---
 <p align="center">

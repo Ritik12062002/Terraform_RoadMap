@@ -1,18 +1,30 @@
-# 🚀 Day 4: EC2 Compute & Security Firewalls
+# 🚀 Day 4: EC2 Compute & Security Groups
 > **Topic:** Launching Your First Web Server
 
 ---
 
-## 🎯 Today's Mission
-Launch an **EC2 Instance** (Virtual Machine) and protect it with a **Security Group** (Firewall). We will also use "User Data" to automatically install a web server on the first boot.
+## 🎯 1. The "Why" - Why are we doing this?
+A VPC is just an empty building. **EC2 (Elastic Compute Cloud)** are the "employees" inside the building doing the work. However, every employee needs a security guard. **Security Groups** are the virtual firewalls that control who can talk to your server.
+
+**Real World Use Case:** You have a web server. You want everyone to see your website (Port 80/443), but you only want YOUR IP address to be able to log in via SSH (Port 22).
 
 ---
 
-## 🔍 Line-by-Line Code Breakdown
+## 🛠️ 2. Core Concepts & Definitions
+- **AMI (Amazon Machine Image):** A template that contains the OS (Linux/Windows) and software.
+- **Instance Type:** The size (CPU/RAM) of your server (e.g., `t2.micro`).
+- **Security Group:** A stateful firewall that controls inbound and outbound traffic.
+- **User Data:** A script that runs automatically the FIRST time a server starts.
 
-### 🛡️ Part 1: The Firewall (Security Group)
+---
+
+## 🔍 3. Line-by-Line Code Explanation (`main.tf`)
+
 ```hcl
 resource "aws_security_group" "web_sg" {
+  name = "web-server-sg"
+  vpc_id = aws_vpc.main.id
+
   ingress {
     from_port   = 80
     to_port     = 80
@@ -21,32 +33,56 @@ resource "aws_security_group" "web_sg" {
   }
 }
 ```
-- **Rule:** This says "Allow anyone in the world to reach my server on Port 80 (HTTP)."
+- **Line 6:** `aws_security_group` - The firewall creator.
+- **Line 10:** `ingress` - Traffic coming **IN**.
+- **Line 11-12:** `from_port = 80, to_port = 80` - Opening the HTTP port for websites.
+- **Line 14:** `cidr_blocks = ["0.0.0.0/0"]` - Allowing the WHOLE WORLD.
 
-### 💻 Part 2: The Server (EC2)
 ```hcl
-resource "aws_instance" "web_server" {
-  ami           = "ami-0c101f26f1473a214"
+resource "aws_instance" "web_app" {
+  ami           = "ami-0c101f26f1473a214" # Amazon Linux 2
   instance_type = "t2.micro"
-  user_data     = <<-EOF ... EOF
+  subnet_id     = aws_subnet.public_subnet.id
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+
+  user_data = <<-EOF
+              #!/bin/bash
+              yum update -y
+              yum install -y httpd
+              systemctl start httpd
+              echo "<h1>Deployed via Terraform by ritik</h1>" > /var/www/html/index.html
+              EOF
 }
 ```
-- **AMI:** The operating system (Amazon Linux).
-- **Type:** `t2.micro` is the "Free Tier" best friend.
-- **User Data:** The magic script that installs Nginx/Apache automatically.
+- **Line 26:** `aws_instance` - The server creator.
+- **Line 27:** `ami` - We are using Amazon Linux 2.
+- **Line 28:** `t2.micro` - The "Free Tier" instance size.
+- **Line 30:** `vpc_security_group_ids` - Attaching our firewall to this server.
+- **Line 32-38:** `user_data` - This script installs the Apache Web Server (`httpd`) and creates a custom "Hello" page automatically.
 
 ---
 
-## 🧠 3. Senior DevOps Insight
-- **IMDSv2:** Always ensure your EC2 instances use MetaData Service v2 to prevent credential theft.
-- **Keyless Access:** In the real world, we use **AWS Systems Manager (SSM)** instead of SSH keys for better security auditing.
+## 🏗️ 4. Architectural Design
+```mermaid
+graph LR
+    User[World] -- Port 80 --> SG[Security Group]
+    SG -- Allow --> EC2[EC2: Web Server]
+    EC2 -- Response --> User
+```
+
+---
+
+## 🧠 5. Senior DevOps Insight
+- **Least Privilege:** Never open Port 22 (SSH) to `0.0.0.0/0`. Only open it to your specific public IP.
+- **Golden AMIs:** In production, we don't use `user_data` to install heavy software. We build an image (AMI) with the software already inside using a tool called **Packer**.
 
 ---
 
 ### 🛠️ Hands-on Tasks:
-- [ ] Deploy the code and find your **Public IP**.
-- [ ] Open the IP in your browser. Do you see the "Deployed via Terraform" message?
-- [ ] **Challenge:** Try changing the HTML message in `user_data` and run `apply` again.
+- [ ] Run `terraform apply`.
+- [ ] Find your **Public IP** in the terminal output.
+- [ ] Open your browser and go to `http://<YOUR-IP>`.
+- [ ] **Verification:** Do you see the message "Deployed via Terraform by ritik"?
 
 ---
 <p align="center">
