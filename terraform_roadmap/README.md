@@ -1,7 +1,5 @@
 # 🌌 AWS & Terraform 20-Day Production Bootcamp
-> **Level:** Beginner to Advanced Senior DevOps  
-> **Student:** ritik  
-> **Mentor:** Antigravity (Senior DevOps Engineer)
+> **Level:** Beginner to Advanced Senior DevOps
 
 ---
 
