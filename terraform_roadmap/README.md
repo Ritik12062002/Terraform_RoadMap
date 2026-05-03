@@ -10,11 +10,12 @@ This is not just a repository; it's your **career transformation hub**. Over the
 
 ## 🗺️ Navigation Hub
 
-| Section | Link | Description |
+| **Section** | Link | Description |
 | :--- | :--- | :--- |
 | **🚀 Start Here** | [Day 0: The Foundation](file:///c:/Users/Nikhil%20Sharma/Desktop/terraform_roadmap/labs/day00-intro/README.md) | Intro to IaC, Terraform, and Industry Workflows. |
 | **📅 The Master Plan** | [20-Day Roadmap](file:///C:/Users/ritik%20Sharma/.gemini/antigravity/brain/465c5209-9416-4e4f-b98c-e6cdcc7310a7/20_day_roadmap.md) | Your daily schedule at a glance. |
 | **🛠️ Current Phase** | [Phase 1: Foundations](file:///C:/Users/ritik%20Sharma/.gemini/antigravity/brain/465c5209-9416-4e4f-b98c-e6cdcc7310a7/phase1_days02_04.md) | IAM, VPC, EC2, and Security Groups. |
+| **💼 Interview Prep** | [Preparation Hub](file:///c:/Users/Nikhil%20Sharma/Desktop/terraform_roadmap/interview_prep/fresher.md) | Q&A for Fresher, 1yr, and 2yr Exp. |
 
 ---
 
